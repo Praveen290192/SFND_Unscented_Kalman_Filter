@@ -160,7 +160,7 @@ void UKF::Prediction(double delta_t)
    * Modify the state vector, x_. Predict sigma points, the state, 
    * and the state covariance matrix.
    */
-  //Augument Vector
+  //Augument Vector Lesson 4.17
   //Defining Matrix and vectors
   VectorXd x_aug = VectorXd(n_aug_);
   MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
@@ -184,7 +184,7 @@ void UKF::Prediction(double delta_t)
     Xsig_aug.col(i + 1+n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * L.col(i);
   }
 
-  //Prediction Matrix
+  //Prediction Matrix Lesson 4.20
   for (int i = 0; i < 2 * n_aug_ + 1; ++i)
   {
     double p_x = Xsig_aug(0, i);
@@ -228,7 +228,8 @@ void UKF::Prediction(double delta_t)
     Xsig_pred_(3, i) = yaw_p;
     Xsig_pred_(4, i) = yawd_p;
   }
-  x_.fill(0);
+  //Lesson 4.23
+  x_.fill(0.0);
   for (int i = 0; i < 2 * n_aug_ + 1; ++i)
   {
     x_ = x_ + weights_(i) * Xsig_pred_.col(i);
@@ -261,10 +262,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package)
    */
   if (is_initialized_)
   {
+    //Lesson 4.26
     int n_z = 2;
-
-    
-
     //creating matrix for sigma points in measurement space
     MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
 
@@ -301,6 +300,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package)
         0, std_laspy_ * std_laspy_;
 
     S += R;
+
+    //Lesson 4.29
 
     MatrixXd Tc = MatrixXd(n_x_, n_z);
 
@@ -344,6 +345,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package)
    */
   if (is_initialized_)
   {
+    //Lesson 4.26
     int n_z = 3;
 
     //creating matrix for sigma points in measurement space
@@ -367,28 +369,9 @@ void UKF::UpdateRadar(MeasurementPackage meas_package)
       double v2 = sin(yaw) * v;
 
       double ro = sqrt(p_x * p_x + p_y * p_y);
-      double phi = 0.0;
-      if(fabs(p_x) > 0.001)
-      {
-        phi = atan2(p_y,p_x);
-      }
-      else
-      {
-        if(p_y>0)
-        {
-          phi = M_PI/2;
-        }
-        else
-        {
-          phi = -M_PI/2;
-        }
-        
-      }
-      
-
       Zsig(0, i) = ro;                         //ro
-      Zsig(1, i) = phi;                                     //phi
-      Zsig(2, i) = (cos(phi)*v1+sin(phi)*v2); // r_dot
+      Zsig(1, i) = atan2(p_y,p_x);                                     //phi
+      Zsig(2, i) = (p_x*v1+p_y*v2)/ro; // r_dot
     }
 
     z_pred.fill(0.0);
@@ -418,6 +401,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package)
 
     MatrixXd Tc = MatrixXd(n_x_, n_z);
 
+    //Lesson 4.29
     Tc.fill(0.0);
 
     for (int i = 0; i < 2 * n_aug_ + 1; ++i)
